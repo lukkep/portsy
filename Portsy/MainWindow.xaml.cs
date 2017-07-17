@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
@@ -15,9 +16,29 @@
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>
+        /// Application name.
+        /// </summary>
+        private const string AppName = "Portsy";
+
+        /// <summary>
+        /// Ready text.
+        /// </summary>
         private const string Ready = "Ready to go!";
 
+        /// <summary>
+        /// Ports range seprator.
+        /// </summary>
+        private const char RangeSeparator = '-';
+
+        /// <summary>
+        /// List of working tasks.
+        /// </summary>
         private List<Task> workingTasks = new List<Task>();
+
+        /// <summary>
+        /// PortQry instance.
+        /// </summary>
         private PortQry2 portQry2;
 
         public MainWindow()
@@ -25,6 +46,8 @@
             this.portQry2 = new PortQry2();
 
             InitializeComponent();
+
+            this.Title = $"{AppName} (v{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor})";
 
             this.queryResultsListBox.ItemsSource = this.QueryResults;
             this.portTypeCombobox.ItemsSource = Enum.GetValues(typeof(ProtocolType)).Cast<ProtocolType>();
@@ -38,6 +61,9 @@
             this.addressTextBox.Focus();
         }
 
+        /// <summary>
+        /// Query results list.
+        /// </summary>
         public ObservableCollection<QueryResult> QueryResults { get; set; } = new ObservableCollection<QueryResult>();
 
         /// <summary>
@@ -47,27 +73,33 @@
         /// <param name="e">Event arguments.</param>
         private void QueryButtonClick(object sender, RoutedEventArgs e)
         {
-            var protocol = (ProtocolType) this.portTypeCombobox.SelectedValue;
-            this.QueryPorts(this.addressTextBox.Text, protocol, this.portsTextBox.Text);
+            try
+            {
+                var protocol = (ProtocolType)this.portTypeCombobox.SelectedValue;
+                this.QueryPorts(this.addressTextBox.Text, protocol, this.portsTextBox.Text);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while parsing provided data. Verify input and try again.", "Data error.", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
         /// Take multiple ports separated by coma and process one by one.
         /// </summary>
-        /// <param name="addresses">Address to check.</param>
-        /// <param name="ports">Ports to check.</param>
-        private void QueryPorts(string addresses, ProtocolType protocol, string ports)
+        /// <param name="addressesInput">Address to check.</param>
+        /// <param name="portsInput">Ports to check.</param>
+        private void QueryPorts(string addressesInput, ProtocolType protocol, string portsInput)
         {
-            var portsNumbers = ports.Split(',');
-            var addressesNumbers = addresses.Split(',');
+            var portsNumbers = this.ParsePorts(portsInput);
+            var addressesNumbers = addressesInput.Split(',');
 
-            // Extend progress bar.
+            // Change progress text and extend progress bar.
             this.progressLabel.Content = "Working...";
+            this.queryProgressBar.Maximum += portsNumbers.Count();
 
             foreach (var singleAddress in addressesNumbers)
             {
-                this.queryProgressBar.Maximum += portsNumbers.Length;
-
                 foreach (var singlePort in portsNumbers)
                 {
                     var task = this.RunQueryTask(singleAddress.Trim(), protocol, singlePort.Trim());
@@ -77,6 +109,62 @@
 
             // Reset app state when all tasks are finished.
             Task.WhenAll(this.workingTasks.ToArray()).ContinueWith((tasks) => this.AllQueryTasksCompleted());
+        }
+
+        /// <summary>
+        /// Parse ports input.
+        /// </summary>
+        /// <param name="portsInput">Input as text.</param>
+        /// <returns>List of ports.</returns>
+        private List<string> ParsePorts(string portsInput)
+        {
+            var ports = new List<string>();
+            var sepratedPortsText = portsInput.Split(',');
+
+            foreach (var port in sepratedPortsText)
+            {
+                // If port text contains ports range.
+                if (port.Contains(RangeSeparator))
+                {
+                    var portsRange = this.GetPortsRange(port);
+                    ports.AddRange(portsRange);
+                    continue;
+                }
+
+                ports.Add(port);
+            }
+
+            return ports;
+        }
+
+        /// <summary>
+        /// Resolve ports range.
+        /// </summary>
+        /// <param name="portRangeInput">Ports range input text.</param>
+        /// <returns>List of ports.</returns>
+        private List<string> GetPortsRange(string portRangeInput)
+        {
+            var rangeValues = portRangeInput.Split(RangeSeparator);
+
+            if (rangeValues.Length != 2)
+            {
+                throw new ArgumentException($"Could not parse [{portRangeInput}] value.");
+            }
+
+            // Ports range values.
+            var lowerNumberSuccess = Int32.TryParse(rangeValues[0], out int lowerNumber);
+            var higherNumberSuccess = Int32.TryParse(rangeValues[1], out int higherNumber);
+
+            if (!lowerNumberSuccess || !higherNumberSuccess || higherNumber < lowerNumber)
+            {
+                throw new ArgumentException($"Could not interpret ports range [{lowerNumber}-{higherNumber}].");
+            }
+
+            // Get range numbers including highest number.
+            var portsRange = Enumerable.Range(lowerNumber, higherNumber - lowerNumber + 1);
+            this.queryProgressBar.Maximum += portsRange.Count();
+
+            return portsRange.Select(n => n.ToString()).ToList();
         }
 
         /// <summary>

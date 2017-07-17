@@ -103,9 +103,6 @@
   <ItemGroup>
     <Resource Include="Resources\portsy.ico" />
     <Resource Include="Resources\portsy_64x_64x.png" />
-    <Resource Include="Resources\throbber.gif">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="PortQrySupport\PortQryV2\EULA.txt" />
     <Content Include="PortQrySupport\PortQryV2\PortQry.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

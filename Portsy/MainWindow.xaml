@@ -30,7 +30,7 @@
                   BorderThickness="0,0,1,0" />
                 <Path 
                   x:Name="Arrow"
-                  Grid.Column="1"     
+                  Grid.Column="1"
                   Fill="White"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center"
@@ -188,7 +188,7 @@
             </Grid.RowDefinitions>
             <TextBox x:Name="addressTextBox" KeyDown="QueryOnEnterKeyDownHandler" Height="23" Margin="10,9,10,0" TextWrapping="Wrap" Text="localhost, 192.168.1.0" VerticalAlignment="Top" Background="#FF1B1B1B" Foreground="#FFF0F0F0" BorderBrush="#FF5D5D5D" Grid.Column="1" Grid.ColumnSpan="3" VerticalContentAlignment="Center"/>
             <Button x:Name="queryButton" Content="Query" HorizontalAlignment="Right" Margin="0,65,10,0" VerticalAlignment="Top" Width="75" Click="QueryButtonClick" Height="30" Background="#FF303030" Foreground="#FFF0F0F0" BorderBrush="#FF5D5D5D" Grid.Column="3"/>
-            <TextBox x:Name="portsTextBox" KeyDown="QueryOnEnterKeyDownHandler" Height="23" Margin="10,37,10,0" TextWrapping="Wrap" Text="80, 81, 8080" Background="#FF1B1B1B" Foreground="#FFF0F0F0" BorderBrush="#FF5D5D5D" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Top" VerticalContentAlignment="Center" />
+            <TextBox x:Name="portsTextBox" KeyDown="QueryOnEnterKeyDownHandler" Height="23" Margin="10,37,10,0" TextWrapping="Wrap" Text="80, 81, 8080-8085" Background="#FF1B1B1B" Foreground="#FFF0F0F0" BorderBrush="#FF5D5D5D" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Top" VerticalContentAlignment="Center" />
             <ListBox x:Name="queryResultsListBox" KeyDown="CopyOnCtrlCKeyDownHandler" Grid.Row="1" Margin="10" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="#FF1B1B1B" Foreground="#FFF0F0F0" BorderBrush="#FF5D5D5D" Grid.ColumnSpan="4" SelectionMode="Extended">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
